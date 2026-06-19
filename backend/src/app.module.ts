@@ -6,6 +6,7 @@ import { PassportModule } from '@nestjs/passport';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ObservabilityModule } from './common/observability/observability.module';
 import { AuthModule } from './auth/auth.module';
 import { GymModule } from './gym/gym.module';
 import { WallModule } from './wall/wall.module';
@@ -32,6 +33,7 @@ import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
   imports: [
+    ObservabilityModule,
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST || 'localhost',
