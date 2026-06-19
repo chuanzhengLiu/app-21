@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { AppService } from './app.service';
 import { LoggerService } from './common/observability';
 
@@ -16,8 +16,8 @@ export class AppController {
   }
 
   @Get('health')
-  health(): { status: string } {
-    this.logger.info('Health check requested');
-    return { status: 'ok' };
+  health(@Query('tag') tag?: string): { status: string; tag?: string } {
+    this.logger.info('Health check requested', { tag: tag || undefined });
+    return { status: 'ok', ...(tag ? { tag } : {}) };
   }
 }

@@ -72,9 +72,15 @@ export class LoggerService implements NestLoggerService {
             name: errorParam.name,
           };
         }
-        const otherParams = optionalParams.filter((p) => typeof p !== 'string' && !(p instanceof Error));
-        if (otherParams.length > 0) {
-          ctx = { ...ctx, ...otherParams[0] };
+        const objectParams = optionalParams.filter(
+          (p) => p !== null && typeof p === 'object' && !(p instanceof Error),
+        );
+        for (const p of objectParams) {
+          ctx = { ...ctx, ...p };
+        }
+        const stringParams = optionalParams.filter((p) => typeof p === 'string');
+        if (stringParams.length > 0 && !(optionalParams[0] instanceof Error)) {
+          ctx.context = stringParams[0];
         }
       }
     }
@@ -91,10 +97,9 @@ export class LoggerService implements NestLoggerService {
     this.logger.info(this.mergeContext(context), message);
   }
 
-  error(message: any, ...optionalParams: any[]): void {
+  error(message: any, errorOrStack?: Error | string, context?: LogContext): void {
     let msg: string;
     let ctx: LogContext = {};
-    let trace: string | undefined;
 
     if (typeof message === 'object') {
       msg = JSON.stringify(message);
@@ -102,23 +107,27 @@ export class LoggerService implements NestLoggerService {
       msg = String(message);
     }
 
-    if (optionalParams.length > 0) {
-      if (optionalParams[0] instanceof Error) {
-        const err = optionalParams[0];
-        ctx.err = {
-          message: err.message,
-          stack: err.stack,
-          name: err.name,
-        };
-        trace = err.stack;
-      } else if (typeof optionalParams[0] === 'string') {
-        trace = optionalParams[0];
-        ctx.context = optionalParams[1] || 'Application';
-      }
+    if (errorOrStack instanceof Error) {
+      ctx.err = {
+        message: errorOrStack.message,
+        stack: errorOrStack.stack,
+        name: errorOrStack.name,
+      };
+    } else if (typeof errorOrStack === 'string') {
+      ctx.trace = errorOrStack;
     }
 
-    if (trace) {
-      ctx.trace = trace;
+    if (context) {
+      ctx = { ...ctx, ...context };
+    }
+
+    if (arguments.length > 3) {
+      for (let i = 3; i < arguments.length; i++) {
+        const arg = arguments[i];
+        if (arg && typeof arg === 'object' && !(arg instanceof Error)) {
+          ctx = { ...ctx, ...arg };
+        }
+      }
     }
 
     this.logger.error(this.mergeContext(ctx), msg);

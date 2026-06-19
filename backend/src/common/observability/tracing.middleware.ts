@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { RequestContext } from './request-context';
+import { RequestContext, RequestContextData } from './request-context';
 import { LoggerService } from './logger.service';
 
 @Injectable()
@@ -14,47 +14,50 @@ export class TracingMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction): void {
     const traceId = (req.headers['x-trace-id'] as string) || uuidv4();
     const startTime = Date.now();
-    const method = req.method;
-    const path = req.originalUrl || req.url;
 
     res.setHeader('x-trace-id', traceId);
 
-    const contextData = {
+    const ctxData: RequestContextData = {
       trace_id: traceId,
-      method,
-      path,
+      method: req.method,
+      path: req.originalUrl || req.url,
       start_time: startTime,
     };
 
     res.on('finish', () => {
-      const durationMs = Date.now() - startTime;
-      this.logger.info('Request completed', {
-        trace_id: traceId,
-        method,
-        path,
+      const durationMs = Date.now() - ctxData.start_time;
+      const completionContext: Record<string, any> = {
+        trace_id: ctxData.trace_id,
+        method: ctxData.method,
+        path: ctxData.path,
         status_code: res.statusCode,
         duration_ms: durationMs,
-      });
+      };
+      if (ctxData.user_id !== undefined) {
+        completionContext.user_id = ctxData.user_id;
+      }
+      this.logger.info('Request completed', completionContext);
     });
 
     res.on('close', () => {
       if (!res.writableFinished) {
-        const durationMs = Date.now() - startTime;
-        this.logger.warn('Request connection closed prematurely', {
-          trace_id: traceId,
-          method,
-          path,
+        const durationMs = Date.now() - ctxData.start_time;
+        const closeContext: Record<string, any> = {
+          trace_id: ctxData.trace_id,
+          method: ctxData.method,
+          path: ctxData.path,
           status_code: res.statusCode,
           duration_ms: durationMs,
-        });
+        };
+        if (ctxData.user_id !== undefined) {
+          closeContext.user_id = ctxData.user_id;
+        }
+        this.logger.warn('Request connection closed prematurely', closeContext);
       }
     });
 
-    this.requestContext.run(contextData, () => {
+    this.requestContext.run(ctxData, () => {
       this.logger.info('Incoming request', {
-        trace_id: traceId,
-        method,
-        path,
         ip: req.ip || req.socket.remoteAddress,
         user_agent: req.headers['user-agent'],
       });
