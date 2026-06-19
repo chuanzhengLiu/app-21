@@ -17,6 +17,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { UserModule } from './user/user.module';
 import { UploadModule } from './upload/upload.module';
 import { SeedsModule } from './seeds/seeds.module';
+import { ObservabilityModule } from './common/observability';
 import { User } from './entities/user.entity';
 import { Gym } from './entities/gym.entity';
 import { Wall } from './entities/wall.entity';
@@ -32,6 +33,7 @@ import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
   imports: [
+    ObservabilityModule,
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST || 'localhost',
