@@ -12,7 +12,8 @@
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "npm run typeorm -- migration:generate -d src/data-source.ts",
     "migration:run": "npm run typeorm -- migration:run -d src/data-source.ts",
-    "migration:revert": "npm run typeorm -- migration:revert -d src/data-source.ts"
+    "migration:revert": "npm run typeorm -- migration:revert -d src/data-source.ts",
+    "verify:trace": "ts-node --project scripts/tsconfig.json scripts/verify-trace.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",
@@ -34,7 +35,8 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "typeorm": "^0.3.21",
-    "uuid": "^11.0.5"
+    "uuid": "^11.0.5",
+    "winston": "^3.19.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",
@@ -45,6 +47,7 @@
     "@types/node": "^22.15.30",
     "@types/passport-jwt": "^4.0.1",
     "@types/uuid": "^10.0.0",
+    "ts-node": "^10.9.2",
     "typescript": "~5.8.3"
   }
 }
