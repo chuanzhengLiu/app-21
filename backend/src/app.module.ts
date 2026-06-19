@@ -29,9 +29,11 @@ import { OperationLog } from './entities/operation-log.entity';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
+import { ObservabilityModule } from './observability/observability.module';
 
 @Module({
   imports: [
+    ObservabilityModule,
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST || 'localhost',
